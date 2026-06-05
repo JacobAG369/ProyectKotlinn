@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Mi Primer Repositorio"
 include(":app")
+include(":smartt")

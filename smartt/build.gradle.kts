@@ -13,8 +13,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.miprimerrepositorio"
-        minSdk = 32
-        targetSdk = 36
+        minSdk = 30
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.protolayout)
     implementation(libs.androidx.protolayout.material3)
     implementation(libs.androidx.tiles)
@@ -57,6 +58,7 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.guava)
     implementation(libs.play.services.wearable)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
