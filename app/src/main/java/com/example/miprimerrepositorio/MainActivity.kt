@@ -16,12 +16,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 
 class MainActivity : AppCompatActivity(), MessageClient.OnMessageReceivedListener {
 
     private lateinit var editText: EditText
     private lateinit var buttonSend: Button
+    private lateinit var buttonGet: Button
+    private lateinit var buttonPost: Button
     private lateinit var textViewReceived: TextView
 
     companion object {
@@ -36,6 +43,8 @@ class MainActivity : AppCompatActivity(), MessageClient.OnMessageReceivedListene
 
         editText = findViewById(R.id.editText)
         buttonSend = findViewById(R.id.button)
+        buttonGet = findViewById(R.id.buttonGet)
+        buttonPost = findViewById(R.id.buttonPost)
         textViewReceived = findViewById(R.id.textViewLabel)
 
         buttonSend.setOnClickListener {
@@ -45,6 +54,80 @@ class MainActivity : AppCompatActivity(), MessageClient.OnMessageReceivedListene
                 editText.text.clear()
             } else {
                 Toast.makeText(this, "Escribe un mensaje", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        buttonGet.setOnClickListener {
+            performGetRequest()
+        }
+
+        buttonPost.setOnClickListener {
+            performPostRequest()
+        }
+    }
+
+    private fun performGetRequest() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://jsonplaceholder.typicode.com/posts/1")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val response = reader.use { it.readText() }
+                    withContext(Dispatchers.Main) {
+                        textViewReceived.text = "GET Response: $response"
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        textViewReceived.text = "GET Error: $responseCode"
+                    }
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    textViewReceived.text = "GET Exception: ${e.message}"
+                }
+            }
+        }
+    }
+
+    private fun performPostRequest() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://jsonplaceholder.typicode.com/posts")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json; utf-8")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.doOutput = true
+
+                val jsonInputString = "{\"title\": \"foo\", \"body\": \"bar\", \"userId\": 1}"
+
+                OutputStreamWriter(connection.outputStream).use { writer ->
+                    writer.write(jsonInputString)
+                    writer.flush()
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_CREATED || responseCode == HttpURLConnection.HTTP_OK) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val response = reader.use { it.readText() }
+                    withContext(Dispatchers.Main) {
+                        textViewReceived.text = "POST Response: $response"
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        textViewReceived.text = "POST Error: $responseCode"
+                    }
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    textViewReceived.text = "POST Exception: ${e.message}"
+                }
             }
         }
     }
